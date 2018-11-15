@@ -27,19 +27,30 @@ module.exports = {
   ** Global CSS
   */
   css: [
+    {src:'element-ui/lib/theme-chalk/index.css'}
   ],
 
   /*
   ** Plugins to load before mounting the App
   */
   plugins: [
+    {src:'~plugins/element-ui', ssr: false}
   ],
 
   /*
   ** Nuxt.js modules
   */
   modules: [
+    '@nuxtjs/axios'
   ],
+
+  axios: {
+    proxy: true
+  },
+
+  proxy: {
+    '/api': 'http://127.0.0.1:8080'
+  },
 
   /*
   ** Build configuration
@@ -49,7 +60,8 @@ module.exports = {
     ** You can extend webpack config here
     */
     extend(config, ctx) {
-      
-    }
+
+    },
+    vendor: ['element-ui']
   }
 }

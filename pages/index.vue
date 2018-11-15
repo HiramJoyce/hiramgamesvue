@@ -7,11 +7,11 @@
       </h1>
       <div class="links">
         <a
-          href="https://nuxtjs.org/"
+          @click="openUrl('/gobang')"
           target="_blank"
           class="button--green">GoBang</a>
         <a
-          href="https://github.com/nuxt/nuxt.js"
+          href="https://github.com/HiramJoyce/hiramgamesvue"
           target="_blank"
           class="button--grey">GitHub</a>
       </div>
@@ -25,6 +25,11 @@ import Logo from '~/components/Logo.vue'
 export default {
   components: {
     Logo
+  },
+  methods: {
+    openUrl (url) {
+      window.open(url)
+    }
   }
 }
 </script>
