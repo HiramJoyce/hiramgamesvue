@@ -1,15 +1,16 @@
 <template>
   <div>
     <div style="justify-content: center; text-align: center;">
-      <h3 class="title">
-        GoBang
-      </h3>
+      <h2 style="margin: 10px;">
+        五子棋游戏大厅
+      </h2>
       <el-button size="mini" type="primary" @click="getGoBangRooms">刷新房间信息</el-button>
     </div>
-    <div style="display: flex; flex-wrap: wrap; flex-flow: row wrap; justify-content: space-around;">
+    <div style="display: flex; flex-wrap: wrap; flex-flow: row wrap; justify-content: center;">
       <el-card v-for="room,i in rooms" :key="room.id + i" style="width: 300px; margin: 10px;">
-        <div slot="header" style="height: 0; line-height: 0; padding: 0; text-align: center;">
+        <div slot="header" style="height: 0; line-height: 0; padding: 0; text-align: center; position: relative;">
           <span>{{room.name}}</span>
+          <el-button v-if="room.members.length>1" style="position: absolute; top: -18px; right: 0; font-size: 12px;" type="text">观战</el-button>
         </div>
         <div style="display: flex; justify-content: center; padding: 0;">
           <div style="width: 110px; line-height: 48px; text-align: right; padding-right: 10px;">
@@ -20,7 +21,7 @@
             {{room.members[1].name}}
           </div>
           <div style="width: 110px; line-height: 45px;" v-else>
-            <el-button style="margin-left: 10px; font-size: 14px;" type="text">加入房间</el-button>
+            <el-button style="margin-left: 10px; font-size: 14px;" type="text" @click="openUrl('/gobang/game?id=' + room.id)">加入游戏</el-button>
           </div>
         </div>
       </el-card>
@@ -49,6 +50,9 @@ export default {
       this.$axios.get('/api/gobangRooms').then((res) => {
         console.log(res.data)
       })
+    },
+    openUrl (url) {
+      window.open(url)
     }
   }
 }
