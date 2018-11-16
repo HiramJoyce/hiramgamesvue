@@ -1,6 +1,6 @@
 <template>
   <div class="container">
-    <h3 style="margin: 10px;">{{name}}{{finish?'':'对战中...'}}{{roomId}}</h3>
+    <h3 style="margin: 10px;">{{name}}{{finish?'':'对战中...'}}{{nowColor==0?'白方执子':'黑方执子'}}</h3>
     <!--- 棋盘 -->
     <!--
     ////////////////////////////////////////////////////////////////////
@@ -13,9 +13,9 @@
     ////////////////////////////////////////////////////////////////////
     -->
     <div style="margin: auto; width: 700px; display: flex; justify-content: center;">
-      <el-card style="width: 100px; height: 100px;">
+      <el-card :class="{white:pieceColor==0,black:pieceColor==1}" style="width: 100px; height: 100px;">
         <div>
-          <span>张三</span>
+          <span>{{opnickname}}</span>
         </div>
       </el-card>
       <div
@@ -41,9 +41,9 @@
           </tr>
         </table>
       </div>
-      <el-card style=" width: 100px; height: 100px; margin-top: 380px; background-color: #47494e; color: #f7f8fb">
+      <el-card :class="{white:pieceColor==1,black:pieceColor==0}" style=" width: 100px; height: 100px; margin-top: 380px;">
         <div>
-          <span>张三</span>
+          <span>{{nickname}}</span>
         </div>
       </el-card>
     </div>
@@ -72,12 +72,14 @@
         token: '',
         nickname: '',
         username: '',
+        opnickname: '', // 对手昵称
         email: '',
         name: '五子棋',
         pieceColor: 0,
         steps: [],
         finish: false,
-        win: false
+        win: false,
+        nowColor: 1
       }
     },
     created () {
@@ -97,17 +99,34 @@
     methods: {
       movePieces(y, x) {
         let vm = this
-        console.log(y + ', ' + x)
+        // 已落子的点不能再次选择
         for (var i = 0; i < vm.steps.length; i++) {
           if (vm.steps[i].x == x && vm.steps[i].y == y) {
-            console.log('Already moved!')
             return;
           }
         }
-        vm.steps.push({y: y, x: x, color: vm.pieceColor})
-        vm.pieceColor++
-        console.log(vm.steps)
+        // 判断是否是当前回合
+        if (vm.nowColor == vm.pieceColor) {
+          this.$message({
+            message: '未到您的回合~',
+            type: 'warning',
+            center: true,
+            size: 'mini'
+          });
+          return;
+        }
+        /////////////// NetWork ///////////////
+        let move = {}
+        move.requireType = 'movePiece'
+        move.point = {y: y, x: x, color: vm.pieceColor}
+        move.token = this.token
+        move.username = this.username
+        move.nickname = this.nickname
+        move.roomId = this.roomId
+        this.finalSend(JSON.stringify(move))
+        ///////////////////////////////////////
       },
+      // 根据坐标和颜色返回特定样式
       getPieces(y, x) {
         let vm = this
         let style = {
@@ -116,18 +135,51 @@
         }
         for (var i = 0; i < vm.steps.length; i++) {
           if (vm.steps[i].x == x && vm.steps[i].y == y) {
-            style.white = vm.steps[i].color % 2 == 0
-            style.black = vm.steps[i].color % 2 == 1
+            style.white = vm.steps[i].color == 1
+            style.black = vm.steps[i].color == 0
           }
         }
         return style
       },
+      // 悔棋
       retract() {
         let vm = this
-        if (vm.steps.pop()) {
-          vm.pieceColor--;
+        if (vm.steps.length <= 0) {
+          this.$message({
+            message: '暂无落子!',
+            center: true
+          });
+          return;
         }
+        for (let i = 0; i < vm.steps.length; i++) {
+          if (vm.steps[i].color == vm.pieceColor) {
+            this.$confirm('悔棋需对方同，是否申请悔棋?', '提示', {
+              confirmButtonText: '申请悔棋',
+              cancelButtonText: '取消',
+              type: 'warning'
+            }).then(() => {
+              let message = {}
+              message.requireType = 'retractApply'
+              message.username = this.username
+              message.roomId = this.roomId
+              vm.finalSend(JSON.stringify(message))
+              this.$message({
+                type: 'info',
+                message: '已发出申请!',
+                center: true
+              });
+            }).catch(() => {
+            });
+            return;
+          }
+        }
+        this.$message({
+          type: 'info',
+          message: '棋盘上没有你的棋子无法悔棋!',
+          center: true
+        });
       },
+      // 认输
       giveUp() {
         let vm = this
         this.$confirm('是否确定认输本局游戏?', '提示', {
@@ -137,10 +189,17 @@
         }).then(() => {
           vm.finish = true
           vm.win = false
+          vm.steps = []
+          let message = {}
+          message.requireType = 'giveUp'
+          message.username = this.username
+          message.roomId = this.roomId
+          vm.finalSend(JSON.stringify(message))
         }).catch(() => {
           this.$message({
             type: 'info',
-            message: '您取消认输，游戏继续!'
+            message: '您取消认输，游戏继续!',
+            center: true
           });
         });
       },
@@ -179,6 +238,58 @@
       webSocketMessage(e) { //数据接收
         let vm = this;
         let message = JSON.parse(e.data);
+        if (message.requireType == 'movePiece') {
+          vm.nowColor = message.move.color
+          vm.steps.push(message.move)
+        } else if (message.requireType == 'joinGame') {
+          if (message.roomHistory && message.roomHistory.length > 0) {
+            vm.steps = message.roomHistory
+            vm.nowColor = message.roomHistory[message.roomHistory.length-1].color
+          } else {
+            vm.nowColor = 1
+          }
+          for (let i = 0; i < message.msg.members.length; i++) {
+            if (message.msg.members[i].username == vm.username) {
+              vm.pieceColor = message.msg.members[i].color
+            } else {
+              vm.opnickname = message.msg.members[i].nickname
+            }
+          }
+        } else if(message.requireType == 'retractApply') {
+          this.$confirm('对方申请悔棋?', '提示', {
+            confirmButtonText: '同意悔棋',
+            cancelButtonText: '拒绝',
+            type: 'warning'
+          }).then(() => {
+            let message = {}
+            message.requireType = 'retractReply'
+            message.username = this.username
+            message.roomId = this.roomId
+            message.reply = true
+            vm.finalSend(JSON.stringify(message))
+          }).catch(() => {
+            let message = {}
+            message.requireType = 'retractReply'
+            message.username = this.username
+            message.roomId = this.roomId
+            message.reply = false
+            vm.finalSend(JSON.stringify(message))
+          });
+        } else if(message.requireType == 'retractReply') {
+          console.log('retractReply')
+          this.$message({
+            message: message.msg,
+            center: true
+          });
+          vm.steps = message.roomHistory?message.roomHistory:[]
+          vm.nowColor = message.roomHistory && message.roomHistory.length > 0?message.roomHistory[message.roomHistory.length-1].color:1
+        } else if (message.requireType == 'giveUp') {
+          vm.finish = true
+          vm.win = true
+          vm.steps = []
+        } else {
+          console.log(message.requireType);
+        }
         console.log(message);
       },
       webSocketClose() {  //关闭
@@ -221,5 +332,6 @@
 
   .black {
     background-color: #47494e;
+    color: #f7f8fb
   }
 </style>

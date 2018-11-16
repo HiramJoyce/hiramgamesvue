@@ -19,8 +19,8 @@
         </el-input>
       </div>
       <el-button-group>
-        <el-button @click="signUp" type="primary" icon="el-icon-edit-outline">Sign in</el-button>
-        <el-button @click="signIn" type="success">Sign up<i class="el-icon-arrow-right el-icon--right"></i></el-button>
+        <el-button @click="signUp" type="primary" icon="el-icon-edit-outline">Sign up</el-button>
+        <el-button @click="signIn" type="success">Sign in<i class="el-icon-arrow-right el-icon--right"></i></el-button>
       </el-button-group>
     </div>
   </section>
