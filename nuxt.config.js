@@ -48,6 +48,12 @@ module.exports = {
     proxy: true
   },
 
+  // proxy: [{
+  //   '/api': 'http://127.0.0.1:8080'
+  // },{
+  //   '/player': 'http://127.0.0.1:8080'
+  // }],
+
   proxy: {
     '/api': 'http://127.0.0.1:8080'
   },
@@ -62,6 +68,6 @@ module.exports = {
     extend(config, ctx) {
 
     },
-    vendor: ['element-ui']
+    vendor: ['element-ui', 'vuex']
   }
 }

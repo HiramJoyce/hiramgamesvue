@@ -1,6 +1,6 @@
 <template>
   <div class="container">
-    <h3 style="margin: 10px;">{{name}}{{finish?'':'对战中...'}}</h3>
+    <h3 style="margin: 10px;">{{name}}{{finish?'':'对战中...'}}{{roomId}}</h3>
     <!--- 棋盘 -->
     <!--
     ////////////////////////////////////////////////////////////////////
@@ -68,11 +68,30 @@
   export default {
     data() {
       return {
+        roomId: '',
+        token: '',
+        nickname: '',
+        username: '',
+        email: '',
         name: '五子棋',
         pieceColor: 0,
         steps: [],
         finish: false,
         win: false
+      }
+    },
+    created () {
+      if (process.browser) {
+        this.setPlayInfo();
+        this.roomId = this.getQueryString('id');
+        if ('WebSocket' in window) {
+          this.webSocket = new WebSocket("ws://localhost:8080/hiramgames");
+          this.initWebSocket();
+          console.log('Support webSocket')
+        }
+        else {
+          console.log('Not support webSocket')
+        }
       }
     },
     methods: {
@@ -127,6 +146,65 @@
       },
       openUrl (url) {
         window.open(url)
+      },
+      getQueryString: function (name) {
+        var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)", "i");
+        var r = window.location.search.substr(1).match(reg);
+        if (r != null) return unescape(r[2]);
+        return null;
+      },
+      setPlayInfo () {
+        let vm = this;
+        vm.token = window.sessionStorage.getItem('token');
+        vm.nickname = window.sessionStorage.getItem('nickname');
+        vm.username = window.sessionStorage.getItem('username');
+        vm.email = window.sessionStorage.getItem('email');
+      },
+      initWebSocket() {
+        this.webSocket.onopen = this.webSocketOpen;
+        this.webSocket.onmessage = this.webSocketMessage;
+        this.webSocket.onclose = this.webSocketClose;
+        this.webSocket.onerror = this.webSocketError;
+      },
+      webSocketOpen() {//打开
+        console.log("WebSocket连接成功")
+        let initRoomInfo = {}
+        initRoomInfo.requireType = 'joinGame'
+        initRoomInfo.roomId = this.roomId
+        initRoomInfo.token = this.token
+        initRoomInfo.username = this.username
+        initRoomInfo.nickname = this.nickname
+        this.finalSend(JSON.stringify(initRoomInfo))
+      },
+      webSocketMessage(e) { //数据接收
+        let vm = this;
+        let message = JSON.parse(e.data);
+        console.log(message);
+      },
+      webSocketClose() {  //关闭
+        console.log("WebSocket关闭");
+      },
+      webSocketError() {  //失败
+        console.log("WebSocket连接失败");
+      },
+      sendMessage() {
+        let vm = this;
+        if (vm.nickName.length <= 0) {
+          this.open3();
+          return;
+        }
+        if (vm.textarea && vm.textarea.length > 0) {
+          let message = {};
+          message.msg = vm.textarea;
+          message.sendType = 'sendMsg';
+          message.nickName = vm.nickName;
+          this.finalSend(JSON.stringify(message));
+          vm.textarea = null
+        }
+      },
+      finalSend(message) {
+        console.log('will send: ' + message)
+        this.webSocket.send(message);
       }
     }
   }

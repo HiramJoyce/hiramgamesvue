@@ -14,14 +14,23 @@
         </div>
         <div style="display: flex; justify-content: center; padding: 0;">
           <div style="width: 110px; line-height: 48px; text-align: right; padding-right: 10px;">
-            {{room.members[0].name}}
+            {{room.members[0].nickname}}
           </div>
           <div style="width: 50px; height: 50px; text-align: center; line-height: 45px; font-size: 22px; background-color: burlywood; border-radius: 4px; color: #f7f8fb">vs</div>
           <div style="width: 110px; line-height: 48px; text-align: left; padding-left: 10px;" v-if="room.members.length>1">
-            {{room.members[1].name}}
+            {{room.members[1].nickname}}
           </div>
           <div style="width: 110px; line-height: 45px;" v-else>
             <el-button style="margin-left: 10px; font-size: 14px;" type="text" @click="openUrl('/gobang/game?id=' + room.id)">加入游戏</el-button>
+          </div>
+        </div>
+      </el-card>
+      <el-card style="width: 300px; height: 127px; margin: 10px; border: 2px #ebeef5 dashed;">
+        <div style="display: flex; justify-content: center; padding: 0;">
+          <div style="width: 110px; line-height: 103px; text-align: center;">
+            <el-button @click="createRoom" style="border: none;">
+              <el-icon style="font-size: 40px; color: darkgray;" class="el-icon-plus" />
+            </el-button>
           </div>
         </div>
       </el-card>
@@ -37,22 +46,60 @@ export default {
   },
   data () {
     return {
-      rooms: [
-        {id:'zhangsan09039',members:[{name:'张三',id:'zhangsan'},{name:'李四',id:'lisi'}],name:'张三的房间'},
-        {id:'zhangsan09039',members:[{name:'张三',id:'zhangsan'}],name:'张三的房间'},
-        {id:'zhangsan09039',members:[{name:'张三',id:'zhangsan'}],name:'张三的房间'},
-        {id:'zhangsan09039',members:[{name:'张三',id:'zhangsan'}],name:'张三的房间'}
-      ]
+      rooms: [],
+      token: '',
+      nickname: '',
+      username: '',
+      email: '',
+      newRoomName: ''
     }
+  },
+  created () {
+    if (process.browser) {
+      this.setPlayInfo();
+    }
+    this.getGoBangRooms();
   },
   methods: {
     getGoBangRooms () {
-      this.$axios.get('/api/gobangRooms').then((res) => {
-        console.log(res.data)
-      })
+      let vm = this;
+      this.$axios.get('/api/gobang/rooms').then((res) => {
+        vm.rooms = res.data.data
+      });
     },
     openUrl (url) {
       window.open(url)
+    },
+    createRoom () {
+      let vm = this;
+      this.$prompt('请输入房间名', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+      }).then(({ value }) => {
+        if (value && value.length > 0) {
+          vm.newRoomName = value;
+          let params = new URLSearchParams();
+          params.append('roomname', vm.newRoomName);
+          params.append('token', vm.token);
+          this.$axios.post('/api/gobang/createRoom', params).then((res) => {
+            console.log(res.data);
+            if (res.data.code === 0) {
+              vm.openUrl('/gobang/game?id=' + res.data.data)
+            } else {
+              alert(res.data.msg)
+            }
+          })
+        }
+      }).catch(() => {
+        console.log('cancel')
+      });
+    },
+    setPlayInfo () {
+      let vm = this;
+      vm.token = window.sessionStorage.getItem('token');
+      vm.nickname = window.sessionStorage.getItem('nickname');
+      vm.username = window.sessionStorage.getItem('username');
+      vm.email = window.sessionStorage.getItem('email');
     }
   }
 }
