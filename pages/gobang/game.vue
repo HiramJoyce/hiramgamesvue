@@ -50,6 +50,7 @@
       <el-button type="info" @click="retract" round>悔棋</el-button>
       <el-button type="warning" @click="giveUp" round>认输</el-button>
     </div>
+    <span style="color: #47494e; font-size: 12px;">提示 : 优先执子权归属 = 首盘游戏 ? 房主 : 败者</span>
     <el-dialog
       title="游戏结束！"
       :visible.sync="finish"
@@ -262,20 +263,33 @@
             vm.nowColor = 1
           }
           if ((vm.number == 0 || vm.number == 2) && message.msg.members.length == 1) {
+            // 房主进入房间
             vm.number = 1
+            vm.nowColor = 1
           }
-          for (let i = 0; i < message.msg.members.length; i++) {
-            if (message.msg.members[i].username == vm.username) {
-              vm.pieceColor = message.msg.members[i].color
-            } else {
-              vm.opnickname = message.msg.members[i].nickname
-              if (vm.number == 1 && message.msg.members.length == 2) {
-                this.$message({
-                  message: '对手[' + vm.opnickname + ']加入房间',
-                  center: true
-                });
+          if (message.msg.members.length == 2) {
+            // 有人加入房间，游戏直接开始变为游戏中状态，房间人数改为2
+            console.log('now number:' + vm.number)
+            vm.gaming = true
+            // 如果此时
+            for (let i = 0; i < 2; i++) {
+              if (message.msg.members[i].username == vm.username) {
+                vm.pieceColor = message.msg.members[i].color
+                if (vm.number == 0) {
+                  vm.nowColor = vm.pieceColor
+                }
+              } else {
+                vm.opnickname = message.msg.members[i].nickname
+                if (vm.number == 1) {
+                  vm.nowColor = vm.pieceColor==1?0:1
+                  this.$message({
+                    message: '对手[' + vm.opnickname + ']加入房间',
+                    center: true
+                  });
+                }
               }
             }
+            vm.number = 2
           }
         } else if(message.requireType == 'retractApply') {
           this.$confirm('对方申请悔棋?', '提示', {
@@ -319,10 +333,12 @@
           vm.number = 1
           vm.reason = '对方逃跑'
           vm.opnickname = ''
+          vm.nowColor = vm.pieceColor==1?0:1
         } else if (message.requireType == 'leave') {
           vm.opnickname = ''
           vm.gaming = false
           vm.number = 1
+          vm.nowColor = vm.pieceColor==1?0:1
           this.$message({
             message: '对方离开了房间',
             center: true
@@ -360,6 +376,7 @@
       reStart() {
         let vm = this
         vm.finish = false
+        vm.gaming = true
         if (vm.opnickname.length > 0) {
           this.$message({
             message: '游戏开始', // vm.win?'对方执子':'你执子',
