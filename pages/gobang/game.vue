@@ -55,7 +55,7 @@
       title="游戏结束！"
       :visible.sync="finish"
       width="30%">
-      <span>您{{win?'赢':'输'}}了！{{win?'恭喜您！':'再接再厉！'}}</span>
+      <span>您{{win?'赢':'输'}}了！{{win?'恭喜您！':'再接再厉！'}} {{reason.length>0?'(' + reason + ')':''}}</span>
       <span slot="footer" class="dialog-footer">
         <el-button type="info" @click="openUrl('/gobang')">离开</el-button>
         <el-button type="primary" @click="reStart">继续</el-button>
@@ -79,7 +79,8 @@
         steps: [],
         finish: false,
         win: false,
-        nowColor: 1
+        nowColor: 1,
+        reason: ''
       }
     },
     created () {
@@ -300,6 +301,8 @@
         } else if (message.requireType == 'escape') {
           vm.finish = true
           vm.win = true
+          vm.steps = []
+          vm.reason = '对方逃跑'
         } else {
           console.log(message.requireType);
         }
