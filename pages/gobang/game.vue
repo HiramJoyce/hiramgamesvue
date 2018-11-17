@@ -79,7 +79,8 @@
         finish: false,
         win: false,
         nowColor: 1,
-        reason: ''
+        reason: '',
+        number: 0
       }
     },
     created () {
@@ -257,11 +258,20 @@
           } else {
             vm.nowColor = 1
           }
+          if (vm.number == 0 && message.msg.members.length == 1) {
+            vm.number = 1
+          }
           for (let i = 0; i < message.msg.members.length; i++) {
             if (message.msg.members[i].username == vm.username) {
               vm.pieceColor = message.msg.members[i].color
             } else {
               vm.opnickname = message.msg.members[i].nickname
+              if (vm.number == 1 && message.msg.members.length == 2) {
+                this.$message({
+                  message: '对手[' + vm.opnickname + ']加入房间',
+                  center: true
+                });
+              }
             }
           }
         } else if(message.requireType == 'retractApply') {
@@ -301,7 +311,9 @@
           vm.finish = true
           vm.win = true
           vm.steps = []
+          vm.number = 1
           vm.reason = '对方逃跑'
+          vm.opnickname = ''
         } else {
           console.log(message.requireType);
         }
@@ -335,10 +347,17 @@
       reStart() {
         let vm = this
         vm.finish = false
-        this.$message({
-          message: '游戏开始', // vm.win?'对方执子':'你执子',
-          center: true
-        });
+        if (vm.opnickname.length > 0) {
+          this.$message({
+            message: '游戏开始', // vm.win?'对方执子':'你执子',
+            center: true
+          });
+        } else {
+          this.$message({
+            message: '等待对手',
+            center: true
+          });
+        }
       }
     }
   }
