@@ -1,6 +1,6 @@
 <template>
   <div class="container">
-    <h3 style="margin: 10px;">{{name}}{{finish?'':'对战中...'}}{{finish?'':nowColor==0?'白方执子':'黑方执子'}}</h3>
+    <h3 style="margin: 10px;">{{name}}{{gaming?'对战中...':''}}{{gaming?nowColor==0?'白方执子':'黑方执子':''}}</h3>
     <!--
     ////////////////////////////////////////////////////////////////////
     //                                                                //
@@ -77,6 +77,7 @@
         pieceColor: 0,
         steps: [],
         finish: false,
+        gaming: false,
         win: false,
         nowColor: 1,
         reason: '',
@@ -189,6 +190,7 @@
           type: 'warning'
         }).then(() => {
           vm.finish = true
+          vm.gaming = false
           vm.win = false
           vm.steps = []
           vm.nowColor = vm.pieceColor==1?0:1
@@ -241,6 +243,7 @@
         let vm = this;
         let message = JSON.parse(e.data);
         if (message.requireType == 'movePiece') {
+          vm.gaming = true
           vm.nowColor = message.move.color
           vm.steps.push(message.move)
           console.log(message)
@@ -258,7 +261,7 @@
           } else {
             vm.nowColor = 1
           }
-          if (vm.number == 0 && message.msg.members.length == 1) {
+          if ((vm.number == 0 || vm.number == 2) && message.msg.members.length == 1) {
             vm.number = 1
           }
           for (let i = 0; i < message.msg.members.length; i++) {
@@ -304,16 +307,26 @@
           vm.nowColor = message.roomHistory && message.roomHistory.length > 0?message.roomHistory[message.roomHistory.length-1].color:1
         } else if (message.requireType == 'giveUp') {
           vm.finish = true
+          vm.gaming = false
           vm.win = true
           vm.steps = []
           vm.nowColor = vm.pieceColor
         } else if (message.requireType == 'escape') {
           vm.finish = true
+          vm.gaming = false
           vm.win = true
           vm.steps = []
           vm.number = 1
           vm.reason = '对方逃跑'
           vm.opnickname = ''
+        } else if (message.requireType == 'leave') {
+          vm.opnickname = ''
+          vm.gaming = false
+          vm.number = 1
+          this.$message({
+            message: '对方离开了房间',
+            center: true
+          });
         } else {
           console.log(message.requireType);
         }
