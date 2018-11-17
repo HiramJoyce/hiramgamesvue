@@ -1,6 +1,6 @@
 <template>
   <div class="container">
-    <h3 style="margin: 10px;">{{name}}{{finish?'':'对战中...'}}{{nowColor==0?'白方执子':'黑方执子'}}</h3>
+    <h3 style="margin: 10px;">{{name}}{{finish?'':'对战中...'}}{{finish?'':nowColor==0?'白方执子':'黑方执子'}}</h3>
     <!--- 棋盘 -->
     <!--
     ////////////////////////////////////////////////////////////////////
@@ -58,7 +58,7 @@
       <span>您{{win?'赢':'输'}}了！{{win?'恭喜您！':'再接再厉！'}}</span>
       <span slot="footer" class="dialog-footer">
         <el-button type="info" @click="openUrl('/gobang')">离开</el-button>
-        <el-button type="primary" @click="finish = false">继续</el-button>
+        <el-button type="primary" @click="reStart">继续</el-button>
       </span>
     </el-dialog>
   </div>
@@ -190,6 +190,7 @@
           vm.finish = true
           vm.win = false
           vm.steps = []
+          vm.nowColor = vm.pieceColor==1?0:1
           let message = {}
           message.requireType = 'giveUp'
           message.username = this.username
@@ -241,6 +242,14 @@
         if (message.requireType == 'movePiece') {
           vm.nowColor = message.move.color
           vm.steps.push(message.move)
+          console.log(message)
+          console.log(message.result)
+          if (message.result != null) {
+            console.log('--- 游戏结束 ---')
+            vm.finish = true
+            vm.steps = []
+            vm.win = message.result==vm.pieceColor
+          }
         } else if (message.requireType == 'joinGame') {
           if (message.roomHistory && message.roomHistory.length > 0) {
             vm.steps = message.roomHistory
@@ -287,6 +296,10 @@
           vm.finish = true
           vm.win = true
           vm.steps = []
+          vm.nowColor = vm.pieceColor
+        } else if (message.requireType == 'escape') {
+          vm.finish = true
+          vm.win = true
         } else {
           console.log(message.requireType);
         }
@@ -316,6 +329,14 @@
       finalSend(message) {
         console.log('will send: ' + message)
         this.webSocket.send(message);
+      },
+      reStart() {
+        let vm = this
+        vm.finish = false
+        this.$message({
+          message: '游戏开始', // vm.win?'对方执子':'你执子',
+          center: true
+        });
       }
     }
   }
