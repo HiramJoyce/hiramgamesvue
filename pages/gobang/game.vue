@@ -1,7 +1,6 @@
 <template>
   <div class="container">
     <h3 style="margin: 10px;">{{name}}{{finish?'':'对战中...'}}{{finish?'':nowColor==0?'白方执子':'黑方执子'}}</h3>
-    <!--- 棋盘 -->
     <!--
     ////////////////////////////////////////////////////////////////////
     //                                                                //
@@ -349,11 +348,9 @@
   .container {
     text-align: center;
   }
-
   .white {
     background-color: #F5F5F5;
   }
-
   .black {
     background-color: #47494e;
     color: #f7f8fb
