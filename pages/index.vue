@@ -71,7 +71,7 @@ export default {
     },
     signUp() {
       console.log('register');
-      window.open('/games')
+      window.open('/signup')
     },
     setToken () {
       let vm = this;
