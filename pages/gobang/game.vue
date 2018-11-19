@@ -51,6 +51,8 @@
       <el-button type="warning" @click="giveUp" round>认输</el-button>
     </div>
     <span style="color: #47494e; font-size: 12px;">提示 : 优先执子权归属 = 首盘游戏 ? 房主 : 败者</span>
+    <br/>
+    <span style="color: #47494e; font-size: 12px;">提示 : 逃跑 = 关闭或刷新页面 && 棋盘上有棋子</span>
     <el-dialog
       title="游戏结束！"
       :visible.sync="finish"
