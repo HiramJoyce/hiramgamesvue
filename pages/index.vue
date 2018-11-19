@@ -64,6 +64,7 @@ export default {
           window.sessionStorage.setItem('nickname', reps.data.nickname);
           window.sessionStorage.setItem('username', reps.data.username);
           window.sessionStorage.setItem('email', reps.data.email);
+          window.sessionStorage.setItem('id', reps.data.id);
           vm.openUrl('/games', '_self')
         } else {
           this.$message({

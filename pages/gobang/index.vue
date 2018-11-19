@@ -51,6 +51,7 @@ export default {
       nickname: '',
       username: '',
       email: '',
+      id: '',
       newRoomName: ''
     }
   },
@@ -100,6 +101,7 @@ export default {
       vm.nickname = window.sessionStorage.getItem('nickname');
       vm.username = window.sessionStorage.getItem('username');
       vm.email = window.sessionStorage.getItem('email');
+      vm.id = window.sessionStorage.getItem('id');
     }
   }
 }

@@ -72,6 +72,7 @@
         token: '',
         nickname: '',
         username: '',
+        id: '',
         opnickname: '', // 对手昵称
         email: '',
         name: '五子棋',
@@ -126,6 +127,7 @@
         move.username = this.username
         move.nickname = this.nickname
         move.roomId = this.roomId
+        move.id = this.id
         this.finalSend(JSON.stringify(move))
         ///////////////////////////////////////
       },
@@ -223,6 +225,7 @@
         vm.nickname = window.sessionStorage.getItem('nickname');
         vm.username = window.sessionStorage.getItem('username');
         vm.email = window.sessionStorage.getItem('email');
+        vm.id = window.sessionStorage.getItem('id');
       },
       initWebSocket() {
         this.webSocket.onopen = this.webSocketOpen;
@@ -238,6 +241,7 @@
         initRoomInfo.token = this.token
         initRoomInfo.username = this.username
         initRoomInfo.nickname = this.nickname
+        initRoomInfo.id = this.id
         this.finalSend(JSON.stringify(initRoomInfo))
       },
       webSocketMessage(e) { //数据接收
