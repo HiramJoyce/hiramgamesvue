@@ -1,12 +1,13 @@
 <template>
   <section class="container">
     <div>
-      <logo/>{{token}}
+      <logo/>
       <div class="links">
-        <a
-          @click="openUrl('/gobang')"
+        <a v-for="game in games"
+           :key="game.id"
+          @click="openUrl(game.path)"
           target="_blank"
-          class="button--green">GoBang</a>
+          class="button--green">{{game.cnname}}</a>
       </div>
     </div>
   </section>
@@ -21,13 +22,15 @@ export default {
   },
   data () {
     return {
-      token: ''
+      token: '',
+      games: []
     }
   },
   created () {
     if (process.browser) {
       this.setToken()
     }
+    this.getGames()
   },
   methods: {
     openUrl (url) {
@@ -36,31 +39,25 @@ export default {
     setToken () {
       let vm = this;
       vm.token = window.sessionStorage.getItem('token');
+    },
+    getGames () {
+      let vm = this;
+      this.$axios.get('/api/games').then((res) => {
+        vm.games = res.data.data
+      });
     }
   }
 }
 </script>
 
 <style>
-
 .container {
   min-height: 100vh;
   display: flex;
   justify-content: center;
   text-align: center;
 }
-
-.title {
-  font-family: 'Quicksand', 'Source Sans Pro', -apple-system, BlinkMacSystemFont,
-    'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  display: block;
-  font-weight: 300;
-  font-size: 80px;
-  color: #35495e;
-  letter-spacing: 1px;
-}
-
-.links {
-  padding-top: 15px;
-}
+  .button--green {
+    margin: 10px;
+  }
 </style>
