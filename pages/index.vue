@@ -20,7 +20,7 @@
       </div>
       <el-button-group>
         <el-button @click="signUp" type="primary" icon="el-icon-edit-outline">Sign up</el-button>
-        <el-button @click="signIn" type="success">Sign in<i class="el-icon-arrow-right el-icon--right"></i></el-button>
+        <el-button :loading="loading" @click="signIn" type="success">Sign in<i class="el-icon-arrow-right el-icon--right"></i></el-button>
       </el-button-group>
     </div>
   </section>
@@ -28,7 +28,6 @@
 
 <script>
 import Logo from '~/components/Logo.vue'
-import {Session} from './../lib/index'
 export default {
   components: {
     Logo
@@ -37,7 +36,8 @@ export default {
     return {
       usernameOrEmail: 'zhangsan',
       password: '123456',
-      token: Session.token
+      token: '',
+      loading: false
     }
   },
   created () {
@@ -46,12 +46,13 @@ export default {
     }
   },
   methods: {
-    openUrl(url) {
-      window.open(url)
+    openUrl(url, target) {
+      window.open(url, target)
     },
     signIn() {
       let vm = this;
       console.log('login');
+      vm.loading = true;
       let params = new URLSearchParams();
       params.append('usernameOrEmail', vm.usernameOrEmail);
       params.append('password', vm.password);
@@ -63,15 +64,19 @@ export default {
           window.sessionStorage.setItem('nickname', reps.data.nickname);
           window.sessionStorage.setItem('username', reps.data.username);
           window.sessionStorage.setItem('email', reps.data.email);
-          vm.openUrl('/games')
+          vm.openUrl('/games', '_self')
         } else {
-          alert(res.data.msg)
+          this.$message({
+            message: '可恶啊~竟然登录失败了呢!',
+            type: 'error',
+            center: true
+          });
         }
+        vm.loading = false
       })
     },
     signUp() {
-      console.log('register');
-      window.open('/signup')
+      this.openUrl('/signup', '_self')
     },
     setToken () {
       let vm = this;

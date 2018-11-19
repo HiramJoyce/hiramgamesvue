@@ -19,7 +19,7 @@
           <el-form-item label-width="0" prop="password2">
             <el-input type="password" v-model="ruleForm.password2" placeholder="确认密码"></el-input>
           </el-form-item>
-          <el-button type="success" @click="signup" icon="el-icon-check" circle></el-button>
+          <el-button type="success" @click="signUp" icon="el-icon-check" circle></el-button>
         </el-form>
       </div>
     </div>
@@ -83,10 +83,10 @@ export default {
     }
   },
   methods: {
-    openUrl (url) {
-      window.open(url)
+    openUrl (url, target) {
+      window.open(url, target)
     },
-    signup () {
+    signUp () {
       let vm = this;
       let params = new URLSearchParams();
       params.append('username', vm.ruleForm.username);
@@ -100,7 +100,7 @@ export default {
           vm.$alert('注册成功', '提示', {
             confirmButtonText: '前往登录',
             callback: action => {
-              vm.openUrl('/')
+              vm.openUrl('/', '_self')
             }
           });
         } else {
