@@ -125,6 +125,15 @@
       },
       movePieces(y, x) {
         let vm = this
+        if (!vm.meReady) {
+          this.$message({
+            message: '请点击准备游戏',
+            type: 'warning',
+            center: true,
+            size: 'mini'
+          });
+          return;
+        }
         // 已落子的点不能再次选择
         for (var i = 0; i < vm.steps.length; i++) {
           if (vm.steps[i].x == x && vm.steps[i].y == y) {
@@ -224,6 +233,8 @@
           message.username = this.username
           message.roomId = this.roomId
           vm.finalSend(JSON.stringify(message))
+          vm.meReady = false
+          vm.opReady = false
         }).catch(() => {
           this.$message({
             type: 'info',
@@ -298,6 +309,8 @@
             vm.finish = true
             vm.steps = []
             vm.win = message.result==vm.pieceColor
+            vm.meReady = false
+            vm.opReady = false
           }
         } else if (message.requireType == 'joinGame') {
           if (message.roomHistory && message.roomHistory.length > 0) {
@@ -369,6 +382,8 @@
           vm.win = true
           vm.steps = []
           vm.nowColor = vm.pieceColor
+          vm.meReady = false
+          vm.opReady = false
         } else if (message.requireType == 'escape') {
           vm.finish = true
           vm.gaming = false
@@ -378,6 +393,8 @@
           vm.reason = '对方逃跑'
           vm.opnickname = ''
           vm.nowColor = vm.pieceColor==1?0:1
+          vm.meReady = false
+          vm.opReady = false
         } else if (message.requireType == 'leave') {
           vm.opnickname = ''
           vm.gaming = false
@@ -387,6 +404,8 @@
             message: '对方离开了房间',
             center: true
           });
+          vm.meReady = false
+          vm.opReady = false
         } else {
           console.log(message.requireType);
         }
