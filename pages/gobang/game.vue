@@ -16,6 +16,9 @@
         <div>
           <span>{{opnickname}}</span>
         </div>
+        <div style="margin-top: 10px;">
+          <el-button v-if="opnickname.length>0" type="primary" size="mini" disabled>{{opReady?'就绪':'准备中'}}</el-button>
+        </div>
       </el-card>
       <div
         style="position: relative;height: 480px; width: 480px; margin: auto; background-color: burlywood; border-radius: 5px;">
@@ -44,6 +47,9 @@
         <div>
           <span>{{nickname}}</span>
         </div>
+        <div style="margin-top: 10px;">
+          <el-button type="primary" size="mini" @click="readyForGame" :disabled="meReady">准备</el-button>
+        </div>
       </el-card>
     </div>
     <div style="margin: 10px;">
@@ -70,12 +76,15 @@
   export default {
     data() {
       return {
+        roomInfo: {},
         roomId: '',
         token: '',
         nickname: '',
         username: '',
         id: '',
-        opnickname: '', // 对手昵称
+        opnickname: '', // 对手昵称,
+        meReady: false,
+        opReady: false,
         email: '',
         name: '五子棋',
         pieceColor: 0,
@@ -103,6 +112,17 @@
       }
     },
     methods: {
+      readyForGame () {
+        this.meReady = true
+        let move = {}
+        move.requireType = 'ready'
+        move.token = this.token
+        move.username = this.username
+        move.roomId = this.roomId
+        move.id = this.id
+        move.ready = this.meReady
+        this.finalSend(JSON.stringify(move))
+      },
       movePieces(y, x) {
         let vm = this
         // 已落子的点不能再次选择
@@ -249,7 +269,18 @@
       webSocketMessage(e) { //数据接收
         let vm = this;
         let message = JSON.parse(e.data);
-        if (message.requireType == 'movePiece') {
+        if (message.requireType == 'ready') {
+          console.log('ready')
+          console.log(message.msg)
+          vm.roomInfo = message.msg
+          // 如果此时
+          for (let i = 0; i < 2; i++) {
+            if (message.msg.members[i].username != vm.username) {
+              vm.opnickname = message.msg.members[i].nickname
+              vm.opReady = message.msg.members[i].ready
+            }
+          }
+        } else if (message.requireType == 'movePiece') {
           if (message.forbid != null) {
             this.$message({
               message: '有人未准备游戏!',
