@@ -250,6 +250,13 @@
         let vm = this;
         let message = JSON.parse(e.data);
         if (message.requireType == 'movePiece') {
+          if (message.forbid != null) {
+            this.$message({
+              message: '有人未准备游戏!',
+              center: true
+            });
+            return;
+          }
           vm.gaming = true
           vm.nowColor = message.move.color
           vm.steps.push(message.move)
